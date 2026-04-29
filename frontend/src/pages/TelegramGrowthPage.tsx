@@ -56,6 +56,22 @@ export function TelegramGrowthPage() {
     return /^\d+(\.\d{1,2})?$/.test(value)
   }
 
+  function getSkippedReasonText(skipReason: CreateOrderResponse['skipReason']): string {
+    if (skipReason === 'duplicate_order') {
+      return 'заказ с таким номером уже существует'
+    }
+
+    if (skipReason === 'integration_disabled') {
+      return 'интеграция Telegram отключена'
+    }
+
+    if (skipReason === 'already_notified') {
+      return 'уведомление по этому заказу уже отправлялось'
+    }
+
+    return 'отправка пропущена'
+  }
+
   async function refreshStatus() {
     setLoadingStatus(true)
     try {
@@ -136,25 +152,23 @@ export function TelegramGrowthPage() {
       setLastSendStatus(response.sendStatus)
       if (response.sendStatus === 'sent') {
         setToast({ type: 'ok', text: `Заказ ${response.order.number} создан, сообщение отправлено в Telegram.` })
-      } else if (response.sendStatus === 'skipped') {
-        const skippedReason =
-          response.skipReason === 'duplicate_order'
-            ? 'заказ с таким номером уже существует'
-            : response.skipReason === 'integration_disabled'
-              ? 'интеграция Telegram отключена'
-              : response.skipReason === 'already_notified'
-                ? 'уведомление по этому заказу уже отправлялось'
-                : 'отправка пропущена'
+        await refreshStatus()
+        return
+      }
+
+      if (response.sendStatus === 'skipped') {
         setToast({
           type: 'warn',
-          text: `Отправка пропущена: ${skippedReason}.`,
+          text: `Отправка пропущена: ${getSkippedReasonText(response.skipReason)}.`,
         })
-      } else {
-        setToast({
-          type: 'error',
-          text: `Заказ ${response.order.number} создан, но отправка в Telegram завершилась ошибкой.`,
-        })
+        await refreshStatus()
+        return
       }
+
+      setToast({
+        type: 'error',
+        text: `Заказ ${response.order.number} создан, но отправка в Telegram завершилась ошибкой.`,
+      })
       await refreshStatus()
     } catch (e) {
       setToast({ type: 'error', text: humanizeError(e, 'Не удалось создать заказ') })
