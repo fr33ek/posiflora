@@ -1,0 +1,117 @@
+<div class="tg-page">
+  <header class="tg-header">
+    <div class="tg-header-left">
+      <h1>{{ title }}</h1>
+      <div class="tg-updated-at" *ngIf="statusUpdatedAt">Статус обновлен: {{ statusUpdatedAt }}</div>
+    </div>
+    <div class="tg-actions">
+      <button type="button" class="tg-button" (click)="refreshStatus()" [disabled]="loadingStatus">
+        Обновить статус
+      </button>
+    </div>
+  </header>
+
+  <div class="tg-grid">
+    <section class="tg-card">
+      <h2>Подключение</h2>
+
+      <label class="tg-field">
+        <span>botToken</span>
+        <input [(ngModel)]="botToken" placeholder="123456:ABC-DEF..." autocomplete="off" />
+      </label>
+
+      <label class="tg-field">
+        <span>chatId</span>
+        <input [(ngModel)]="chatId" placeholder="987654321" autocomplete="off" />
+      </label>
+
+      <label class="tg-toggle">
+        <input class="tg-toggle-input" type="checkbox" [(ngModel)]="enabled" />
+        <span class="tg-toggle-label">enabled</span>
+      </label>
+
+      <button type="button" class="tg-button tg-primary" (click)="onSave()" [disabled]="saving">
+        {{ saving ? 'Сохранение…' : 'Сохранить' }}
+      </button>
+
+      <div class="tg-hint">
+        <strong>Как узнать chatId:</strong>
+        <div>
+          Самый простой путь для MVP — написать боту и получить chat id через один из готовых ботов (например,
+          @userinfobot) или через любой “getUpdates” инструмент. Затем вставьте chatId сюда.
+        </div>
+      </div>
+    </section>
+
+    <section class="tg-card">
+      <h2>Статус</h2>
+
+      <div class="tg-muted" *ngIf="loadingStatus">Загрузка…</div>
+
+      <dl class="tg-dl" *ngIf="!loadingStatus && status">
+        <div>
+          <dt>enabled</dt>
+          <dd>{{ status.enabled ? 'true' : 'false' }}</dd>
+        </div>
+        <div>
+          <dt>chatId</dt>
+          <dd>{{ status.chatId ?? '—' }}</dd>
+        </div>
+        <div>
+          <dt>lastSentAt</dt>
+          <dd>{{ status.lastSentAt ?? '—' }}</dd>
+        </div>
+        <div>
+          <dt>sentCount (7d)</dt>
+          <dd>{{ status.sentCount }}</dd>
+        </div>
+        <div>
+          <dt>failedCount (7d)</dt>
+          <dd>{{ status.failedCount }}</dd>
+        </div>
+      </dl>
+
+      <div class="tg-muted" *ngIf="!loadingStatus && !status">Нет данных</div>
+    </section>
+  </div>
+
+  <section class="tg-card tg-order-card">
+    <h2>Тестовый заказ</h2>
+
+    <div class="tg-order-grid">
+      <label class="tg-field">
+        <span>number</span>
+        <input [(ngModel)]="orderNumber" placeholder="A-1001" autocomplete="off" />
+      </label>
+
+      <label class="tg-field">
+        <span>total</span>
+        <input
+          [ngModel]="orderTotal"
+          (ngModelChange)="onOrderTotalInput($event)"
+          (keydown)="onOrderTotalKeydown($event)"
+          (paste)="onOrderTotalPaste($event)"
+          inputmode="decimal"
+          placeholder="1500"
+          autocomplete="off"
+        />
+      </label>
+
+      <label class="tg-field">
+        <span>customerName</span>
+        <input [(ngModel)]="orderCustomerName" placeholder="Иван" autocomplete="off" />
+      </label>
+    </div>
+
+    <div class="tg-order-actions">
+      <button type="button" class="tg-button tg-primary" (click)="onCreateOrder()" [disabled]="creatingOrder">
+        {{ creatingOrder ? 'Создание…' : 'Создать тестовый заказ' }}
+      </button>
+      <span class="tg-send-status" *ngIf="lastSendStatus" [class]="'tg-send-status tg-send-status--' + lastSendStatus">
+        sendStatus: {{ lastSendStatus }}
+      </span>
+    </div>
+  </section>
+
+  <div class="tg-toast" *ngIf="toast" [class]="'tg-toast tg-toast--' + toast.type">{{ toast.text }}</div>
+</div>

@@ -3,7 +3,9 @@
 Минимально рабочая версия из ТЗ:
 
 - Backend: Symfony + PostgreSQL
-- Frontend: React + TypeScript (Vite)
+- Frontend:
+  - React + TypeScript (Vite)
+  - Angular (standalone app)
 - Инфра: Docker + `docker-compose.yml`
 - Фичи:
   - подключение Telegram-интеграции (token + chatId + enabled)
@@ -18,13 +20,16 @@
 
 ```bash
 docker compose up -d --build
-docker compose exec -T backend php bin/console doctrine:migrations:migrate --no-interaction
 docker compose exec -T backend php bin/console app:seed
 ```
 
 Backend будет доступен на `http://localhost:8000`.
 
+При старте backend-контейнер автоматически применяет миграции (`doctrine:migrations:migrate`).
+
 ### Frontend
+
+React:
 
 ```bash
 cd frontend
@@ -32,11 +37,27 @@ npm install
 npm run dev
 ```
 
-Страница по ТЗ:
+Страница:
 
 - `http://localhost:5173/shops/1/growth/telegram`
 
 Vite настроен проксировать запросы `/shops/*` на `http://localhost:8000`, поэтому CORS не нужен.
+
+Angular (альтернативный фронт с тем же функционалом):
+
+```bash
+cd frontend-angular
+npm install
+npm start
+```
+
+Страница:
+
+- `http://localhost:5174/shops/1/growth/telegram`
+
+Angular dev server использует proxy с префиксом `/api`:
+- frontend вызывает `/api/shops/*`
+- proxy перенаправляет на `http://localhost:8000/shops/*`
 
 ### API (как в ТЗ)
 
@@ -84,7 +105,8 @@ curl "https://api.telegram.org/bot<TOKEN>/getUpdates"
 
 ### Проверка на фронте
 
-Страница `http://localhost:5173/shops/1/growth/telegram` позволяет:
+Обе страницы (`http://localhost:5173/shops/1/growth/telegram` и
+`http://localhost:5174/shops/1/growth/telegram`) позволяют:
 
 - подключить/обновить Telegram-интеграцию;
 - посмотреть статус и статистику отправок;
@@ -103,7 +125,7 @@ curl "https://api.telegram.org/bot<TOKEN>/getUpdates"
 
 ### Smoke-test за 1 минуту
 
-1. Откройте `http://localhost:5173/shops/1/growth/telegram`, заполните `botToken`, `chatId`, включите `enabled=true`, нажмите `Сохранить`.
+1. Откройте `http://localhost:5173/shops/1/growth/telegram` (React) или `http://localhost:5174/shops/1/growth/telegram` (Angular), заполните `botToken`, `chatId`, включите `enabled=true`, нажмите `Сохранить`.
 2. В блоке `Тестовый заказ` создайте заказ с новым `number` (например, `A-9001`) и суммой `1500`.
 3. Проверьте результат:
    - в UI: toast и `sendStatus` (`sent|failed|skipped`) с причиной;
