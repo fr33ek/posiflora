@@ -50,7 +50,8 @@ class TelegramSendLogRepository extends ServiceEntityRepository
             }
             if ($status === TelegramSendStatus::SENT->value) {
                 $sent = $cnt;
-            } elseif ($status === TelegramSendStatus::FAILED->value) {
+            }
+            if ($status === TelegramSendStatus::FAILED->value) {
                 $failed = $cnt;
             }
         }

@@ -27,14 +27,18 @@ class SeedCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        $createdShop = false;
         $shop = $this->shops->find(1);
         if (!$shop instanceof Shop) {
             $shop = new Shop('Demo shop');
             $this->em->persist($shop);
             $this->em->flush();
+            $createdShop = true;
             $output->writeln(sprintf('Created shop id=%d', $shop->getId()));
-        } else {
-            $output->writeln(sprintf('Shop id=%d already exists', $shop->getId()));
+        }
+
+        if (!$createdShop) {
+            $output->writeln(sprintf('Shop id=%d already exists', $shop?->getId() ?? 1));
         }
 
         $existing = $this->orders->count(['shop' => $shop]);
